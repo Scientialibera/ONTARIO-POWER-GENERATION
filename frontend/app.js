@@ -41,7 +41,7 @@ function canvasFrame(canvas) {
   const ctx = canvas.getContext("2d"); ctx.scale(ratio, ratio); return { ctx, width, height };
 }
 function drawAxes(ctx, width, height, pad = 34) {
-  ctx.strokeStyle = "#153049"; ctx.lineWidth = 1;
+  ctx.strokeStyle = "#dce6dc"; ctx.lineWidth = 1;
   for (let i = 0; i < 5; i++) { const y = pad + (height - pad * 2) * i / 4; ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(width - pad, y); ctx.stroke(); }
   return { left: pad, right: width - pad, top: pad, bottom: height - pad };
 }
@@ -55,30 +55,31 @@ function drawMarketChart() {
   const canvas = document.getElementById("market-chart"); if (!canvas || !state.market) return;
   const { ctx, width, height } = canvasFrame(canvas); ctx.clearRect(0, 0, width, height); const box = drawAxes(ctx, width, height);
   const demand = state.market.demand.hourly.map(r => Number(r.ontario_demand_mw)); const prices = state.market.day_ahead_price.hours.map(r => Number(r.price)); if (!demand.length || !prices.length) return;
-  drawLine(ctx, demand, box, Math.min(...demand) * .97, Math.max(...demand) * 1.03, "#52e0ff", 2.4);
-  drawLine(ctx, prices, box, Math.min(...prices) - 5, Math.max(...prices) + 5, "#f6b84b", 2.0);
-  ctx.fillStyle = "#6f879a"; ctx.font = "10px system-ui"; for (let i = 0; i < 24; i += 4) { const x = box.left + (box.right - box.left) * i / 23; ctx.fillText(String(i + 1).padStart(2, "0"), x - 6, height - 12); }
+  drawLine(ctx, demand, box, Math.min(...demand) * .97, Math.max(...demand) * 1.03, "#4f8a5c", 2.4);
+  drawLine(ctx, prices, box, Math.min(...prices) - 5, Math.max(...prices) + 5, "#4e91c8", 2.0);
+  ctx.fillStyle = "#758278"; ctx.font = "10px system-ui"; for (let i = 0; i < 24; i += 4) { const x = box.left + (box.right - box.left) * i / 23; ctx.fillText(String(i + 1).padStart(2, "0"), x - 6, height - 12); }
 }
 
 function drawBatteryChart() {
   const canvas = document.getElementById("battery-chart"); if (!canvas || !state.dispatch) return;
   const { ctx, width, height } = canvasFrame(canvas); ctx.clearRect(0, 0, width, height); const box = drawAxes(ctx, width, height); const rows = state.dispatch.rows;
   const price = rows.map(r => r.price_per_mwh); const soc = rows.map(r => r.soc_mwh); const maxSoc = Math.max(...soc, 1); const maxPower = Math.max(...rows.flatMap(r => [r.charge_mw, r.discharge_mw]), 1); const barW = (box.right - box.left) / rows.length * .55;
-  rows.forEach((row, i) => { const x = box.left + (box.right - box.left) * i / Math.max(rows.length - 1, 1); const chargeH = (box.bottom - box.top) * row.charge_mw / maxPower; const dischargeH = (box.bottom - box.top) * row.discharge_mw / maxPower; ctx.fillStyle = "rgba(82,224,255,.75)"; ctx.fillRect(x - barW / 2, box.bottom - chargeH, barW, chargeH); ctx.fillStyle = "rgba(246,184,75,.82)"; ctx.fillRect(x - barW / 2, box.bottom - dischargeH, barW, dischargeH); });
-  drawLine(ctx, price, box, Math.min(...price) - 5, Math.max(...price) + 5, "#f6b84b", 1.7); drawLine(ctx, soc, box, 0, maxSoc * 1.05, "#52e0ff", 2.3);
+  rows.forEach((row, i) => { const x = box.left + (box.right - box.left) * i / Math.max(rows.length - 1, 1); const chargeH = (box.bottom - box.top) * row.charge_mw / maxPower; const dischargeH = (box.bottom - box.top) * row.discharge_mw / maxPower; ctx.fillStyle = "rgba(78,145,200,.65)"; ctx.fillRect(x - barW / 2, box.bottom - chargeH, barW, chargeH); ctx.fillStyle = "rgba(220,133,40,.72)"; ctx.fillRect(x - barW / 2, box.bottom - dischargeH, barW, dischargeH); });
+  drawLine(ctx, price, box, Math.min(...price) - 5, Math.max(...price) + 5, "#dc8528", 1.7); drawLine(ctx, soc, box, 0, maxSoc * 1.05, "#4f8a5c", 2.3);
 }
 
 function drawScenarioChart() {
   const canvas = document.getElementById("scenario-chart"); if (!canvas || !state.scenario) return;
-  const { ctx, width, height } = canvasFrame(canvas); ctx.clearRect(0, 0, width, height); const box = drawAxes(ctx, width, height); const baseline = state.scenario.baseline_mw; const scenario = state.scenario.scenario_mw; const min = Math.min(...baseline, ...scenario) * .96; const max = Math.max(...baseline, ...scenario) * 1.04; drawLine(ctx, baseline, box, min, max, "#52e0ff", 2.2); drawLine(ctx, scenario, box, min, max, "#f6b84b", 2.2);
+  const { ctx, width, height } = canvasFrame(canvas); ctx.clearRect(0, 0, width, height); const box = drawAxes(ctx, width, height); const baseline = state.scenario.baseline_mw; const scenario = state.scenario.scenario_mw; const min = Math.min(...baseline, ...scenario) * .96; const max = Math.max(...baseline, ...scenario) * 1.04; drawLine(ctx, baseline, box, min, max, "#4e91c8", 2.2); drawLine(ctx, scenario, box, min, max, "#dc8528", 2.2);
 }
 function redrawAll() { drawMarketChart(); drawBatteryChart(); drawScenarioChart(); }
 
 function renderMarket() {
   const m = state.market; const demand = m.demand.hourly.map(r => Number(r.ontario_demand_mw)); const da = m.day_ahead_price.hours.map(r => Number(r.price)); const generation = Object.values(m.generation_mix_mw || {}).reduce((a, b) => a + Number(b), 0);
   setText("kpi-demand", num(m.demand.latest_mw)); setText("kpi-rt-price", num(m.realtime_price.price, 2)); setText("kpi-da-peak", da.length ? num(Math.max(...da), 2) : "--"); setText("kpi-generation", generation ? num(generation) : "--"); setText("kpi-peak-demand", demand.length ? num(Math.max(...demand)) : "--");
-  setText("detail-hour", m.realtime_price.delivery_hour ?? "--"); setText("detail-price", m.realtime_price.price == null ? "--" : `$${num(m.realtime_price.price, 2)}`); const last = m.realtime_price.intervals?.filter(r => r.price != null).slice(-1)[0] || {}; setText("detail-loss", last.loss == null ? "--" : `$${num(last.loss, 2)}`); setText("detail-congestion", last.congestion == null ? "--" : `$${num(last.congestion, 2)}`); setText("detail-state", m.data_status === "live" ? "LIVE IESO" : "SAMPLE FALLBACK"); setText("as-of", m.as_of === "sample" ? "sample fallback" : new Date(m.as_of).toLocaleString());
+  setText("detail-hour", m.realtime_price.delivery_hour ?? "--"); setText("detail-price", m.realtime_price.price == null ? "--" : `$${num(m.realtime_price.price, 2)}`); const last = m.realtime_price.intervals?.filter(r => r.price != null).slice(-1)[0] || {}; setText("detail-loss", last.loss == null ? "--" : `$${num(last.loss, 2)}`); setText("detail-congestion", last.congestion == null ? "--" : `$${num(last.congestion, 2)}`); setText("detail-state", m.data_status === "live" ? "LIVE IESO" : "SAMPLE FALLBACK"); setText("as-of", m.as_of === "sample" ? "Sample data" : `Updated ${new Date(m.as_of).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`);
   const sourceDot = document.getElementById("source-dot"); sourceDot.classList.remove("live", "fallback"); sourceDot.classList.add(m.data_status === "live" ? "live" : "fallback"); setText("source-label", m.data_status === "live" ? "IESO Public Reports Live" : "IESO unavailable: sample fallback"); setText("map-condition", m.data_status === "live" ? "Live market feed connected" : "Fallback dataset in use");
+  const currentPrice = Number(m.realtime_price.price); const peakPrice = Math.max(...da); const pressure = peakPrice ? currentPrice / peakPrice : 0; const signal = pressure >= .8 ? ["Elevated price pressure", "Current pricing is close to the day-ahead peak. Review the dispatch window."] : pressure >= .5 ? ["Balanced market signal", "Price is within the normal daily operating range."] : ["Favourable charging window", "Current pricing is below the day-ahead peak range."]; setText("signal-label", signal[0]); setText("signal-detail", signal[1]);
   const mix = Object.entries(m.generation_mix_mw || {}).sort((a,b) => b[1]-a[1]); const max = Math.max(...mix.map(([,v]) => Number(v)), 1); const mixBars = document.getElementById("mix-bars"); mixBars.replaceChildren(); mix.forEach(([name, value]) => { const row = document.createElement("div"); row.className = "mix-row"; const label = document.createElement("span"); label.className = "mix-label"; label.textContent = name; const track = document.createElement("div"); track.className = "mix-track"; const fill = document.createElement("div"); fill.className = "mix-fill"; fill.style.width = `${Math.max(3, Number(value) / max * 100)}%`; track.append(fill); const amount = document.createElement("span"); amount.className = "mix-value"; amount.textContent = `${num(value)} MW`; row.append(label, track, amount); mixBars.append(row); }); drawMarketChart();
 }
 

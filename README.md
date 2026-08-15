@@ -132,13 +132,24 @@ python -m pytest tests/test_browser_e2e.py -q
 3. **Scenario Lab** applies the chosen data-centre load, load factor, heat-wave and EV-growth assumptions to the measured 24-hour baseline. These are sensitivity transforms, not a forecast.
 4. **Forecast and Backtest** documents the reproducible history-download and forward-validation workflow. Run the two scripts shown there when you want to train against downloaded IESO history.
 
+### Live Grid guide
+
+The numbered square markers in the Live Grid UI and screenshot identify the main operating surfaces:
+
+1. **Product navigation** — switch between the live grid, battery optimizer, scenario analysis, and forecast/backtest workspace.
+2. **Data connection** — shows whether the dashboard is using live IESO public reports or the bundled fallback snapshot.
+3. **Generation mix** — compares the latest observed output by fuel type and makes the supply balance readable at a glance.
+4. **Ontario operating regions** — a schematic transmission view that provides geographic context for the current operating session. The map key distinguishes the major and regional connections.
+5. **Market signal** — interprets the current real-time price against the day-ahead peak as a charging, balanced, or elevated-pressure window; it is an operational cue, not a market forecast.
+6. **24-hour demand and price profile** — shows the measured demand shape alongside the day-ahead price curve, helping analysts see when system load and market value align.
+
 ## Dashboard screenshots
 
-The screenshots below were captured through the Playwright browser workflow using the bundled fallback snapshot, which is why the source chip is amber rather than live green.
+The screenshots below were captured through the Playwright browser workflow using the bundled fallback snapshot, which is why the source chip is amber rather than live green. The numbered squares in the Live Grid view correspond to the guide above.
 
 ### Live Grid
 
-![Live Grid dashboard](docs/screenshots/live-grid.png)
+![Live Grid dashboard](docs/screenshots/live-grid-saas.png)
 
 ### Battery Optimizer
 

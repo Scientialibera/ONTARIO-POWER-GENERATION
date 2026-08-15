@@ -63,8 +63,11 @@ def set_range(page: Page, selector: str, value: str) -> None:
 
 
 def test_live_grid_renders_market_summary_and_chart(dashboard: Page) -> None:
+    expect(dashboard.locator('link[rel="icon"]')).to_have_attribute("href", "/static/favicon.svg")
     expect(dashboard.locator("#source-label")).to_have_text("IESO unavailable: sample fallback")
     expect(dashboard.locator("#kpi-rt-price")).to_have_text("52.4")
+    expect(dashboard.locator("#signal-label")).to_have_text("Balanced market signal")
+    expect(dashboard.locator(".guide-badge")).to_have_count(6)
     expect(dashboard.locator("#mix-bars .mix-row")).to_have_count(6)
     expect(dashboard.locator("#market-chart")).to_be_visible()
 
