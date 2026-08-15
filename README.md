@@ -101,6 +101,53 @@ python -m pytest -q
 python scripts/check_no_emoji.py
 ```
 
+### Browser end-to-end tests
+
+The Playwright suite exercises the dashboard through a real browser: live-grid rendering, battery peak-shaving, scenario inputs, forecast content and the mobile layout. It serves the bundled market snapshot to the browser for the live-feed request, so results are deterministic; optimizer and scenario calls continue through the running FastAPI service.
+
+Start the application in one terminal:
+
+```bash
+uvicorn app.main:app --port 8000
+```
+
+Then, in another terminal, install Chromium once and run the suite:
+
+```bash
+python -m playwright install chromium
+python -m pytest tests/test_browser_e2e.py -q
+```
+
+If the app is on another port, set `E2E_BASE_URL` first. For example, in PowerShell:
+
+```powershell
+$env:E2E_BASE_URL = "http://127.0.0.1:8010"
+python -m pytest tests/test_browser_e2e.py -q
+```
+
+## Using the dashboard
+
+1. **Live Grid** opens the latest available IESO market snapshot. Check the source chip in the upper-right: it distinguishes live IESO reports from the clearly labelled bundled fallback.
+2. **Battery Optimizer** lets you choose market-value arbitrage or peak shaving, set the battery power, energy, efficiency, initial state of charge and degradation cost, then select **Run Optimization**. The result cards and hourly dispatch schedule update together.
+3. **Scenario Lab** applies the chosen data-centre load, load factor, heat-wave and EV-growth assumptions to the measured 24-hour baseline. These are sensitivity transforms, not a forecast.
+4. **Forecast and Backtest** documents the reproducible history-download and forward-validation workflow. Run the two scripts shown there when you want to train against downloaded IESO history.
+
+## Dashboard screenshots
+
+The screenshots below were captured through the Playwright browser workflow using the bundled fallback snapshot, which is why the source chip is amber rather than live green.
+
+### Live Grid
+
+![Live Grid dashboard](docs/screenshots/live-grid.png)
+
+### Battery Optimizer
+
+![Battery Optimizer dashboard](docs/screenshots/battery-optimizer.png)
+
+### Scenario Lab
+
+![Scenario Lab dashboard](docs/screenshots/scenario-lab.png)
+
 There is intentionally no GitHub Actions, CI or deployment workflow in this repository.
 
 ## Model boundary
