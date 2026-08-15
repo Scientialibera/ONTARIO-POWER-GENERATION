@@ -3,8 +3,9 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Literal
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -28,7 +29,7 @@ app = FastAPI(
 class BatteryRequest(BaseModel):
     prices: list[float] | None = None
     load_mw: list[float] | None = None
-    strategy: str = "arbitrage"
+    strategy: Literal["arbitrage", "peak_shaving"] = "arbitrage"
     power_mw: float = Field(100.0, gt=0)
     energy_mwh: float = Field(400.0, gt=0)
     round_trip_efficiency: float = Field(0.88, gt=0, le=1)
@@ -95,8 +96,10 @@ async def battery_optimize(request: BatteryRequest) -> dict:
         max_soc_pct=request.max_soc_pct,
         degradation_cost_per_mwh=request.degradation_cost_per_mwh,
     )
-    strategy = "peak_shaving" if request.strategy == "peak_shaving" else "arbitrage"
-    return optimize_dispatch(prices, config, strategy=strategy, load_mw=load).to_dict()
+    try:
+        return optimize_dispatch(prices, config, strategy=request.strategy, load_mw=load).to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/api/scenario/load")
