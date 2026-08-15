@@ -4,24 +4,30 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ontario Power Generation</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
   <div class="app-shell">
-    <header class="topbar">
-      <div>
-        <div class="eyebrow">ONTARIO ELECTRICITY MARKET</div>
-        <h1>Ontario Power Generation</h1>
-      </div>
-      <nav id="tabs" class="tabs">
-        <button class="tab active" data-tab="live">Live Grid</button>
-        <button class="tab" data-tab="battery">Battery Optimizer</button>
-        <button class="tab" data-tab="scenario">Scenario Lab</button>
-        <button class="tab" data-tab="forecast">Forecast and Backtest</button>
+    <aside class="sidebar">
+      <div class="brand-lockup"><span class="brand-mark" aria-hidden="true">OP</span><div><strong>Ontario Power</strong><span>Market Desk</span></div></div>
+      <nav id="tabs" class="tabs" aria-label="Product navigation"><span class="guide-badge nav-guide" aria-label="Guide item 1">1</span>
+        <button class="tab active" data-tab="live"><span class="nav-glyph">01</span>Live Grid</button>
+        <button class="tab" data-tab="battery"><span class="nav-glyph">02</span>Battery Optimizer</button>
+        <button class="tab" data-tab="scenario"><span class="nav-glyph">03</span>Scenario Lab</button>
+        <button class="tab" data-tab="forecast"><span class="nav-glyph">04</span>Forecast and Backtest</button>
       </nav>
-      <div class="source-chip">
-        <span id="source-dot" class="status-dot"></span>
-        <span id="source-label">Connecting to IESO</span>
+      <div class="sidebar-footer"><span class="status-dot live"></span><span>Operations workspace</span></div>
+    </aside>
+    <div class="workspace">
+    <header class="topbar">
+      <div class="page-title">
+        <div class="eyebrow">ONTARIO ELECTRICITY MARKET</div>
+        <h1>System overview</h1>
+      </div>
+      <div class="topbar-meta">
+        <span id="as-of" class="updated-at">Loading market data…</span>
+        <div class="source-chip"><span class="guide-badge" aria-label="Guide item 2">2</span><span id="source-dot" class="status-dot"></span><span id="source-label">Connecting to IESO</span></div>
       </div>
     </header>
 
@@ -38,7 +44,7 @@
         <div class="live-grid">
           <aside class="panel mix-panel">
             <div class="panel-heading">
-              <div><span class="eyebrow">CURRENT SUPPLY</span><h2>Generation Mix</h2></div>
+              <div><span class="eyebrow">CURRENT SUPPLY</span><h2><span class="guide-badge" aria-label="Guide item 3">3</span> Generation Mix</h2></div>
               <span class="micro">IESO capability report</span>
             </div>
             <div id="mix-bars" class="mix-bars"></div>
@@ -47,10 +53,11 @@
 
           <section class="panel system-panel">
             <div class="panel-heading">
-              <div><span class="eyebrow">OPERATING VIEW</span><h2>Ontario System Schematic</h2></div>
-              <span id="as-of" class="micro">--</span>
+              <div><span class="eyebrow">LIVE SYSTEM VIEW</span><h2><span class="guide-badge" aria-label="Guide item 4">4</span> Ontario operating regions</h2></div>
+              <div class="map-filters"><span>Transmission</span><span>24-hour view</span></div>
             </div>
             <div class="system-map-wrap">
+              <div class="map-key"><span><i class="line-major"></i>Major connection</span><span><i class="line-minor"></i>Regional connection</span></div>
               <svg class="system-map" viewBox="0 0 800 460" aria-label="Schematic Ontario electricity operating regions">
                 <defs>
                   <linearGradient id="ontarioFill" x1="0" y1="0" x2="1" y2="1">
@@ -72,12 +79,15 @@
                   <circle cx="626" cy="250" r="12"/><text x="603" y="281">Ottawa</text>
                 </g>
               </svg>
-              <div class="map-overlay"><span>Schematic operating view</span><strong id="map-condition">Market connected</strong></div>
+              <div class="map-overlay"><span>System condition</span><strong id="map-condition">Market connected</strong></div>
             </div>
           </section>
 
           <aside class="panel interval-panel">
-            <div class="panel-heading"><div><span class="eyebrow">MARKET INTERVAL</span><h2>Price Components</h2></div></div>
+            <div class="panel-heading"><div><span class="eyebrow">MARKET SIGNAL</span><h2><span class="guide-badge" aria-label="Guide item 5">5</span> <span id="signal-label">Assessing price pressure</span></h2></div></div>
+            <p id="signal-detail" class="signal-copy">Comparing the current interval with the day-ahead curve.</p>
+            <div class="signal-tags"><span>Demand</span><span>Price</span><span>Supply</span></div>
+            <div class="subsection-heading">Price components</div>
             <dl class="detail-list">
               <div><dt>Delivery hour</dt><dd id="detail-hour">--</dd></div>
               <div><dt>Realtime price</dt><dd id="detail-price">--</dd></div>
@@ -90,7 +100,7 @@
 
         <section class="panel chart-panel">
           <div class="panel-heading">
-            <div><span class="eyebrow">24 HOUR PROFILE</span><h2>Demand and Day-Ahead Market Price</h2></div>
+            <div><span class="eyebrow">24 HOUR PROFILE</span><h2><span class="guide-badge" aria-label="Guide item 6">6</span> Demand and Day-Ahead Market Price</h2></div>
             <div class="legend"><span class="legend-demand">Demand</span><span class="legend-price">Day-ahead price</span></div>
           </div>
           <canvas id="market-chart" height="250"></canvas>
@@ -165,6 +175,7 @@
         </div>
       </section>
     </main>
+    </div>
   </div>
   <script src="/static/app.js"></script>
 </body>
