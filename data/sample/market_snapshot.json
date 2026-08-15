@@ -1,0 +1,16 @@
+{
+  "as_of": "sample",
+  "source": "Bundled sample fallback; replace with live IESO public reports",
+  "demand": {
+    "latest_mw": 17840,
+    "hourly": [
+      {"hour": 1, "date": "sample", "ontario_demand_mw": 14820}, {"hour": 2, "date": "sample", "ontario_demand_mw": 14380}, {"hour": 3, "date": "sample", "ontario_demand_mw": 14120}, {"hour": 4, "date": "sample", "ontario_demand_mw": 14040}, {"hour": 5, "date": "sample", "ontario_demand_mw": 14320}, {"hour": 6, "date": "sample", "ontario_demand_mw": 15120}, {"hour": 7, "date": "sample", "ontario_demand_mw": 16080}, {"hour": 8, "date": "sample", "ontario_demand_mw": 16860}, {"hour": 9, "date": "sample", "ontario_demand_mw": 17440}, {"hour": 10, "date": "sample", "ontario_demand_mw": 17780}, {"hour": 11, "date": "sample", "ontario_demand_mw": 18120}, {"hour": 12, "date": "sample", "ontario_demand_mw": 18440}, {"hour": 13, "date": "sample", "ontario_demand_mw": 18780}, {"hour": 14, "date": "sample", "ontario_demand_mw": 19120}, {"hour": 15, "date": "sample", "ontario_demand_mw": 19440}, {"hour": 16, "date": "sample", "ontario_demand_mw": 19720}, {"hour": 17, "date": "sample", "ontario_demand_mw": 20120}, {"hour": 18, "date": "sample", "ontario_demand_mw": 20540}, {"hour": 19, "date": "sample", "ontario_demand_mw": 20380}, {"hour": 20, "date": "sample", "ontario_demand_mw": 19920}, {"hour": 21, "date": "sample", "ontario_demand_mw": 19240}, {"hour": 22, "date": "sample", "ontario_demand_mw": 18380}, {"hour": 23, "date": "sample", "ontario_demand_mw": 17240}, {"hour": 24, "date": "sample", "ontario_demand_mw": 16080}
+    ]
+  },
+  "zonal_demand": {},
+  "realtime_price": {"delivery_hour": 12, "price": 52.4, "intervals": [{"interval": 8, "price": 49.2, "loss": 1.1, "congestion": 0.2}, {"interval": 9, "price": 50.3, "loss": 1.2, "congestion": 0.2}, {"interval": 10, "price": 51.8, "loss": 1.3, "congestion": 0.4}, {"interval": 11, "price": 52.1, "loss": 1.4, "congestion": 0.4}, {"interval": 12, "price": 52.4, "loss": 1.4, "congestion": 0.5}]},
+  "day_ahead_price": {"delivery_date": "sample", "hours": [
+    {"hour": 1, "price": 23.2}, {"hour": 2, "price": 19.4}, {"hour": 3, "price": 16.8}, {"hour": 4, "price": 15.2}, {"hour": 5, "price": 18.3}, {"hour": 6, "price": 27.6}, {"hour": 7, "price": 36.4}, {"hour": 8, "price": 42.8}, {"hour": 9, "price": 46.5}, {"hour": 10, "price": 48.1}, {"hour": 11, "price": 49.8}, {"hour": 12, "price": 52.0}, {"hour": 13, "price": 54.2}, {"hour": 14, "price": 58.4}, {"hour": 15, "price": 64.8}, {"hour": 16, "price": 71.3}, {"hour": 17, "price": 84.6}, {"hour": 18, "price": 96.4}, {"hour": 19, "price": 88.2}, {"hour": 20, "price": 72.8}, {"hour": 21, "price": 61.4}, {"hour": 22, "price": 49.8}, {"hour": 23, "price": 38.4}, {"hour": 24, "price": 29.2}
+  ]},
+  "generation_mix_mw": {"Nuclear": 10280, "Hydro": 4210, "Gas": 2980, "Wind": 1760, "Solar": 310, "Biofuel": 80}
+}

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ontario Power Generation</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">ONTARIO ELECTRICITY MARKET</div>
+        <h1>Ontario Power Generation</h1>
+      </div>
+      <nav id="tabs" class="tabs">
+        <button class="tab active" data-tab="live">Live Grid</button>
+        <button class="tab" data-tab="battery">Battery Optimizer</button>
+        <button class="tab" data-tab="scenario">Scenario Lab</button>
+        <button class="tab" data-tab="forecast">Forecast and Backtest</button>
+      </nav>
+      <div class="source-chip">
+        <span id="source-dot" class="status-dot"></span>
+        <span id="source-label">Connecting to IESO</span>
+      </div>
+    </header>
+
+    <main>
+      <section id="view-live" class="view active">
+        <div class="kpi-strip">
+          <article class="kpi"><span>Ontario Demand</span><strong id="kpi-demand">--</strong><small>MW</small></article>
+          <article class="kpi"><span>Real-Time Price</span><strong id="kpi-rt-price">--</strong><small>$/MWh</small></article>
+          <article class="kpi"><span>Day-Ahead Peak</span><strong id="kpi-da-peak">--</strong><small>$/MWh</small></article>
+          <article class="kpi"><span>Generation Observed</span><strong id="kpi-generation">--</strong><small>MW</small></article>
+          <article class="kpi"><span>Peak Demand, 24h</span><strong id="kpi-peak-demand">--</strong><small>MW</small></article>
+        </div>
+
+        <div class="live-grid">
+          <aside class="panel mix-panel">
+            <div class="panel-heading">
+              <div><span class="eyebrow">CURRENT SUPPLY</span><h2>Generation Mix</h2></div>
+              <span class="micro">IESO capability report</span>
+            </div>
+            <div id="mix-bars" class="mix-bars"></div>
+            <div class="panel-note">Values are taken from the latest parsed generator report when live data is available.</div>
+          </aside>
+
+          <section class="panel system-panel">
+            <div class="panel-heading">
+              <div><span class="eyebrow">OPERATING VIEW</span><h2>Ontario System Schematic</h2></div>
+              <span id="as-of" class="micro">--</span>
+            </div>
+            <div class="system-map-wrap">
+              <svg class="system-map" viewBox="0 0 800 460" aria-label="Schematic Ontario electricity operating regions">
+                <defs>
+                  <linearGradient id="ontarioFill" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#102338"/>
+                    <stop offset="1" stop-color="#07121d"/>
+                  </linearGradient>
+                  <filter id="glow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+                <path class="province" d="M122 77 L241 54 L343 70 L421 122 L509 111 L595 151 L666 227 L642 305 L565 329 L511 379 L427 365 L372 399 L300 369 L232 383 L171 329 L121 295 L85 224 Z"/>
+                <g class="network-lines"><path d="M155 180 L270 220 L392 192 L522 229 L626 250"/><path d="M270 220 L324 315 L455 332 L522 229"/><path d="M392 192 L455 332"/><path d="M155 180 L228 106 L392 192"/></g>
+                <g class="node-group">
+                  <circle cx="155" cy="180" r="12"/><text x="130" y="155">Northwest</text>
+                  <circle cx="228" cy="106" r="12"/><text x="204" y="82">Northeast</text>
+                  <circle cx="270" cy="220" r="12"/><text x="231" y="254">West</text>
+                  <circle cx="392" cy="192" r="12"/><text x="363" y="165">Toronto</text>
+                  <circle cx="324" cy="315" r="12"/><text x="285" y="346">Southwest</text>
+                  <circle cx="455" cy="332" r="12"/><text x="438" y="364">Bruce</text>
+                  <circle cx="522" cy="229" r="12"/><text x="504" y="203">East</text>
+                  <circle cx="626" cy="250" r="12"/><text x="603" y="281">Ottawa</text>
+                </g>
+              </svg>
+              <div class="map-overlay"><span>Schematic operating view</span><strong id="map-condition">Market connected</strong></div>
+            </div>
+          </section>
+
+          <aside class="panel interval-panel">
+            <div class="panel-heading"><div><span class="eyebrow">MARKET INTERVAL</span><h2>Price Components</h2></div></div>
+            <dl class="detail-list">
+              <div><dt>Delivery hour</dt><dd id="detail-hour">--</dd></div>
+              <div><dt>Realtime price</dt><dd id="detail-price">--</dd></div>
+              <div><dt>Loss component</dt><dd id="detail-loss">--</dd></div>
+              <div><dt>Congestion component</dt><dd id="detail-congestion">--</dd></div>
+              <div><dt>Data state</dt><dd id="detail-state">--</dd></div>
+            </dl>
+          </aside>
+        </div>
+
+        <section class="panel chart-panel">
+          <div class="panel-heading">
+            <div><span class="eyebrow">24 HOUR PROFILE</span><h2>Demand and Day-Ahead Market Price</h2></div>
+            <div class="legend"><span class="legend-demand">Demand</span><span class="legend-price">Day-ahead price</span></div>
+          </div>
+          <canvas id="market-chart" height="250"></canvas>
+        </section>
+      </section>
+
+      <section id="view-battery" class="view">
+        <div class="optimizer-layout">
+          <aside class="panel control-panel">
+            <div class="panel-heading"><div><span class="eyebrow">STORAGE ASSET</span><h2>Battery Configuration</h2></div></div>
+            <label>Strategy<select id="battery-strategy"><option value="arbitrage">Maximum market value</option><option value="peak_shaving">Peak shaving</option></select></label>
+            <label>Power <output id="power-out">100 MW</output><input id="power" type="range" min="20" max="500" step="10" value="100"></label>
+            <label>Energy <output id="energy-out">400 MWh</output><input id="energy" type="range" min="50" max="2000" step="50" value="400"></label>
+            <label>Round-trip efficiency <output id="eff-out">88%</output><input id="eff" type="range" min="70" max="98" step="1" value="88"></label>
+            <label>Initial SOC <output id="soc-out">50%</output><input id="soc" type="range" min="15" max="90" step="5" value="50"></label>
+            <label>Degradation cost <output id="deg-out">$3/MWh</output><input id="deg" type="range" min="0" max="20" step="1" value="3"></label>
+            <button id="run-optimizer" class="primary">Run Optimization</button>
+            <p class="panel-note">The optimizer uses day-ahead Ontario zonal prices. It enforces power, energy, efficiency, SOC and terminal-SOC constraints.</p>
+          </aside>
+
+          <div class="optimizer-main">
+            <section class="panel"><div class="panel-heading"><div><span class="eyebrow">OPTIMAL DISPATCH</span><h2>Price, Charge, Discharge and State of Charge</h2></div></div><canvas id="battery-chart" height="300"></canvas></section>
+            <section class="result-grid">
+              <article class="result-card"><span>Net Value</span><strong id="result-net">--</strong></article>
+              <article class="result-card"><span>Gross Discharge Revenue</span><strong id="result-gross">--</strong></article>
+              <article class="result-card"><span>Charging Cost</span><strong id="result-charge">--</strong></article>
+              <article class="result-card"><span>Degradation Cost</span><strong id="result-deg">--</strong></article>
+              <article class="result-card"><span>Equivalent Cycles</span><strong id="result-cycles">--</strong></article>
+              <article class="result-card"><span>Peak Reduction</span><strong id="result-peak">--</strong></article>
+            </section>
+            <section class="panel">
+              <div class="panel-heading"><div><span class="eyebrow">HOURLY PLAN</span><h2>Dispatch Schedule</h2></div></div>
+              <div class="table-wrap"><table><thead><tr><th>Hour</th><th>Price</th><th>Charge</th><th>Discharge</th><th>SOC</th><th>Gross Margin</th></tr></thead><tbody id="dispatch-body"></tbody></table></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-scenario" class="view">
+        <div class="scenario-layout">
+          <aside class="panel control-panel">
+            <div class="panel-heading"><div><span class="eyebrow">LOAD GROWTH</span><h2>Scenario Inputs</h2></div></div>
+            <label>New data centre load <output id="dc-out">500 MW</output><input id="dc" type="range" min="0" max="1500" step="50" value="500"></label>
+            <label>Data centre load factor <output id="dclf-out">90%</output><input id="dclf" type="range" min="50" max="100" step="5" value="90"></label>
+            <label>Heat-wave delta <output id="heat-out">+5 C</output><input id="heat" type="range" min="0" max="10" step="1" value="5"></label>
+            <label>EV demand growth <output id="ev-out">20%</output><input id="ev" type="range" min="0" max="100" step="5" value="20"></label>
+            <button id="run-scenario" class="primary">Run Scenario</button>
+            <p class="panel-note">These are transparent scenario transforms, not claimed forecasts. They are intended for sensitivity analysis around a measured baseline.</p>
+          </aside>
+          <div class="scenario-main">
+            <section class="panel"><div class="panel-heading"><div><span class="eyebrow">SYSTEM IMPACT</span><h2>Baseline vs Scenario Demand</h2></div></div><canvas id="scenario-chart" height="300"></canvas></section>
+            <section class="result-grid three"><article class="result-card"><span>Baseline Peak</span><strong id="scenario-before">--</strong></article><article class="result-card"><span>Scenario Peak</span><strong id="scenario-after">--</strong></article><article class="result-card"><span>Incremental Peak</span><strong id="scenario-delta">--</strong></article></section>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-forecast" class="view">
+        <div class="forecast-grid">
+          <section class="panel">
+            <div class="panel-heading"><div><span class="eyebrow">MODEL DESIGN</span><h2>Forward-Validated Demand Forecast</h2></div></div>
+            <div class="forecast-copy"><p>The training pipeline downloads official hourly Ontario demand history, constructs lag and rolling features and trains a gradient-boosting model with a strict forward holdout.</p><div class="feature-cloud"><span>Lag 1h</span><span>Lag 24h</span><span>Lag 168h</span><span>Rolling 24h</span><span>Rolling 168h</span><span>Hour</span><span>Weekday</span><span>Month</span></div><div class="code-callout">python scripts/download_ieso_history.py<br>python scripts/train_demand_model.py</div></div>
+          </section>
+          <section class="panel">
+            <div class="panel-heading"><div><span class="eyebrow">EVALUATION</span><h2>Backtest Contract</h2></div></div>
+            <dl class="detail-list"><div><dt>Split</dt><dd>Chronological holdout</dd></div><div><dt>Primary metric</dt><dd>MAE in MW</dd></div><div><dt>Baseline</dt><dd>Same hour one week ago</dd></div><div><dt>Published score</dt><dd>Only after local training</dd></div></dl>
+            <p class="panel-note">The repository does not ship invented model metrics. A model artifact and metrics are produced only after the official history is downloaded and trained.</p>
+          </section>
+          <section class="panel full">
+            <div class="panel-heading"><div><span class="eyebrow">DATA FOUNDATION</span><h2>Official IESO Public Data Used</h2></div></div>
+            <div class="source-grid"><div><strong>Hourly Demand</strong><span>Province-wide historical and current demand</span></div><div><strong>Day-Ahead Ontario Zonal Price</strong><span>24-hour battery optimization price signal</span></div><div><strong>Real-Time Ontario Zonal Price</strong><span>5-minute live market price and components</span></div><div><strong>Generator Output and Capability</strong><span>Current generation mix and capability</span></div><div><strong>Hourly Consumption by FSA</strong><span>Geographic residential and small-commercial consumption history</span></div><div><strong>2026 Annual Planning Outlook</strong><span>Long-term demand scenarios and planning context</span></div></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
