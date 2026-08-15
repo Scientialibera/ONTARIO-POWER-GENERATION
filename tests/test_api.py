@@ -30,3 +30,19 @@ def test_optimizer_api_with_explicit_prices():
     payload = response.json()
     assert payload["status"] == "optimal"
     assert payload["net_value"] > 0
+
+
+def test_optimizer_rejects_unknown_strategy():
+    response = client.post(
+        "/api/battery/optimize",
+        json={"prices": [10, 20, 30], "strategy": "price_following"},
+    )
+    assert response.status_code == 422
+
+
+def test_peak_shaving_requires_matching_load_series():
+    response = client.post(
+        "/api/battery/optimize",
+        json={"prices": [10, 20, 30], "strategy": "peak_shaving"},
+    )
+    assert response.status_code == 422
