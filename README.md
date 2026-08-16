@@ -1,66 +1,95 @@
 # Ontario Power Generation
 
-Ontario Power Generation is a public-data electricity-market intelligence, forecasting and battery-storage optimization application built around official IESO reports.
+This repository reads public IESO market reports, normalizes the latest operating snapshot, solves battery dispatch as a constrained linear program and applies explicit demand-sensitivity scenarios to the measured load profile. A separate training pipeline builds a chronological Ontario demand forecast from downloaded IESO history.
 
-The name describes the project subject. This repository is not affiliated with Ontario Power Generation Inc. or the Independent Electricity System Operator.
+The repository name refers to Ontario electricity generation as the project subject. It is not affiliated with Ontario Power Generation Inc. or the Independent Electricity System Operator.
 
-## What the application does
+## Interface
 
 ### Live Grid
 
-The backend retrieves and normalizes current IESO public reports for:
+![Live Grid dashboard](docs/screenshots/live-grid-saas.png)
 
-- Ontario hourly demand
-- Ontario zonal real-time price
-- day-ahead Ontario zonal price
-- generator output and capability
-- hourly zonal demand where available
+The numbered regions identify the operating surfaces in the live-grid view:
 
-The UI clearly reports whether the current session is using live IESO data or the bundled sample fallback.
+1. **Workspace navigation** switches between Live Grid, Battery Optimizer, Scenario Lab and Forecast/Backtest without changing the underlying data session.
+2. **Source state** reports whether the current snapshot came from live IESO public reports or the bundled fallback dataset. The timestamp and source state should be checked before interpreting the dashboard.
+3. **Generation mix** groups the latest reported generator output by fuel type and compares the contribution of the major supply classes.
+4. **Ontario operating-region view** provides geographic context for the current session and distinguishes the major regional connections shown by the schematic.
+5. **Market signal** compares the current real-time price with the day-ahead price profile and classifies the current interval as a charging, balanced or elevated-price window. It is a rule-based operating cue rather than a price forecast.
+6. **Demand and price profile** plots the 24-hour Ontario demand series with the day-ahead price curve so load shape and storage-value periods can be inspected on the same time axis.
 
 ### Battery Optimizer
 
-A constrained linear program calculates an hourly charge and discharge schedule using the day-ahead price curve.
+![Battery Optimizer dashboard](docs/screenshots/battery-optimizer.png)
 
-Constraints include power, energy capacity, minimum and maximum state of charge, round-trip efficiency, terminal state of charge and degradation cost.
-
-Two strategies are implemented:
-
-- market-value arbitrage
-- system peak shaving
+The optimizer view exposes four functional groups: battery constraints, strategy selection, objective outputs and the hourly dispatch schedule. Battery constraints include power, energy capacity, round-trip efficiency, initial state of charge, minimum and maximum state of charge, terminal state of charge and degradation cost. Strategy selection switches between market-value arbitrage and system peak shaving. The result cards report the solved objective and battery-use metrics while the hourly schedule shows charge, discharge and state of charge for every interval.
 
 ### Scenario Lab
 
-The scenario lab lets an analyst layer explicit sensitivity assumptions over the measured 24-hour demand baseline:
+![Scenario Lab dashboard](docs/screenshots/scenario-lab.png)
 
-- new data-centre load
-- data-centre load factor
-- heat-wave temperature delta
-- EV demand growth
+The scenario view applies explicit transforms to the observed 24-hour baseline. Inputs cover incremental data-centre load, data-centre load factor, temperature sensitivity for a heat-wave case and EV-demand growth. The result compares the transformed load profile with the measured baseline. These values are scenario assumptions and are not forecast outputs.
 
-These are labelled scenario transforms and are not presented as forecasts.
+## IESO data
 
-### Demand Forecast and Backtest
+The backend normalizes the following public IESO reports when they are available:
 
-The repository includes a reproducible pipeline for downloading official IESO hourly demand history and training a gradient-boosting model with a chronological holdout.
+- Ontario hourly demand
+- real-time Ontario zonal price
+- day-ahead Ontario zonal price
+- generator output and capability
+- hourly zonal demand where the source report is available
 
-The model uses hour, weekday, month, 1-hour lag, 24-hour lag, 168-hour lag and rolling demand features.
+The UI reports whether the active session is using live IESO data or the bundled fallback snapshot. Source failures do not silently become live observations.
 
-No invented model score is shipped. Metrics are generated after training and compared with a one-week seasonal-naive baseline.
+Official sources:
 
-## Public data foundation
+**IESO Data Directory**  
+https://www.ieso.ca/power-data/data-directory
 
-IESO publishes the core data required for the product:
+**Hourly Demand**  
+https://reports-public.ieso.ca/public/Demand/
 
-- Data Directory: https://www.ieso.ca/power-data/data-directory
-- Hourly Demand: https://reports-public.ieso.ca/public/Demand/
-- Real-Time Ontario Zonal Price: https://reports-public.ieso.ca/public/RealtimeOntarioZonalPrice/
-- Day-Ahead Ontario Zonal Price: https://reports-public.ieso.ca/public/DAHourlyOntarioZonalPrice/
-- Generator Output and Capability: https://reports-public.ieso.ca/public/GenOutputCapability/
-- Hourly Consumption by Forward Sortation Area: https://reports-public.ieso.ca/public/HourlyConsumptionByFSA/
-- 2026 Annual Planning Outlook: https://www.ieso.ca/Sector-Participants/Planning-and-Forecasting/Annual-Planning-Outlook
+**Real-Time Ontario Zonal Price**  
+https://reports-public.ieso.ca/public/RealtimeOntarioZonalPrice/
 
-The IESO FSA consumption archive provides an additional path for geographic demand modelling but is not bundled into the repository because the monthly archives are large.
+**Day-Ahead Ontario Zonal Price**  
+https://reports-public.ieso.ca/public/DAHourlyOntarioZonalPrice/
+
+**Generator Output and Capability**  
+https://reports-public.ieso.ca/public/GenOutputCapability/
+
+**Hourly Consumption by Forward Sortation Area**  
+https://reports-public.ieso.ca/public/HourlyConsumptionByFSA/
+
+**IESO Annual Planning Outlook**  
+https://www.ieso.ca/Sector-Participants/Planning-and-Forecasting/Annual-Planning-Outlook
+
+The FSA consumption archive can support geographic demand analysis but is not bundled because the source archives are large.
+
+## Battery model
+
+The battery optimizer is a deterministic linear program over hourly intervals. Decision variables represent charging, discharging and state of charge. Constraints enforce battery power, usable energy, state-of-charge bounds, charge/discharge efficiency and the requested terminal state.
+
+The arbitrage objective maximizes market value net of degradation cost using the supplied price curve. The peak-shaving objective reduces the highest net-demand intervals subject to the same physical constraints. The implementation does not model IESO bids, dispatch instructions, transmission constraints or ancillary-service qualification.
+
+## Scenario model
+
+Scenario Lab starts from the measured load profile and applies the selected sensitivity parameters. Data-centre load is controlled separately from its load factor. Heat-wave sensitivity modifies load according to the explicit temperature-delta assumption. EV growth adds the configured demand increment. Because the inputs are transparent transforms, baseline and scenario values can be compared without implying that the scenario is statistically forecast.
+
+## Demand forecast
+
+The training pipeline downloads official IESO hourly demand history and creates calendar, lag and rolling features. Current features include hour, weekday, month, 1-hour lag, 24-hour lag, 168-hour lag and rolling demand statistics. Training uses a chronological holdout rather than a random split so future observations do not leak into model fitting.
+
+No precomputed accuracy claim is hard-coded in the repository. Training writes model metrics and compares the fitted model with a one-week seasonal-naive baseline.
+
+```bash
+python scripts/download_ieso_history.py --start-year 2018 --end-year 2025
+python scripts/train_demand_model.py
+```
+
+Downloaded history and model artifacts are excluded from Git.
 
 ## Run locally
 
@@ -79,90 +108,26 @@ pip install -e ".[dev]"
 uvicorn app.main:app --reload --port 8000
 ```
 
-Open:
+Open `http://localhost:8000`.
 
-```text
-http://localhost:8000
-```
-
-## Train the demand model
-
-```bash
-python scripts/download_ieso_history.py --start-year 2018 --end-year 2025
-python scripts/train_demand_model.py
-```
-
-Downloaded market data and model artifacts are gitignored.
-
-## Test locally
+## Local checks
 
 ```bash
 python -m pytest -q
 python scripts/check_no_emoji.py
 ```
 
-### Browser end-to-end tests
-
-The Playwright suite exercises the dashboard through a real browser: live-grid rendering, battery peak-shaving, scenario inputs, forecast content and the mobile layout. It serves the bundled market snapshot to the browser for the live-feed request, so results are deterministic; optimizer and scenario calls continue through the running FastAPI service.
-
-Start the application in one terminal:
-
-```bash
-uvicorn app.main:app --port 8000
-```
-
-Then, in another terminal, install Chromium once and run the suite:
+Browser tests exercise live-grid rendering, the battery optimizer, scenario inputs, forecast content and responsive layout against deterministic test data:
 
 ```bash
 python -m playwright install chromium
 python -m pytest tests/test_browser_e2e.py -q
 ```
 
-If the app is on another port, set `E2E_BASE_URL` first. For example, in PowerShell:
+If the application is running on another port, set `E2E_BASE_URL` before starting the browser suite.
 
-```powershell
-$env:E2E_BASE_URL = "http://127.0.0.1:8010"
-python -m pytest tests/test_browser_e2e.py -q
-```
+The repository contains no GitHub Actions, CI or deployment workflow.
 
-## Using the dashboard
+## Model limits
 
-1. **Live Grid** opens the latest available IESO market snapshot. Check the source chip in the upper-right: it distinguishes live IESO reports from the clearly labelled bundled fallback.
-2. **Battery Optimizer** lets you choose market-value arbitrage or peak shaving, set the battery power, energy, efficiency, initial state of charge and degradation cost, then select **Run Optimization**. The result cards and hourly dispatch schedule update together.
-3. **Scenario Lab** applies the chosen data-centre load, load factor, heat-wave and EV-growth assumptions to the measured 24-hour baseline. These are sensitivity transforms, not a forecast.
-4. **Forecast and Backtest** documents the reproducible history-download and forward-validation workflow. Run the two scripts shown there when you want to train against downloaded IESO history.
-
-### Live Grid guide
-
-The numbered square markers in the Live Grid UI and screenshot identify the main operating surfaces:
-
-1. **Product navigation** — switch between the live grid, battery optimizer, scenario analysis, and forecast/backtest workspace.
-2. **Data connection** — shows whether the dashboard is using live IESO public reports or the bundled fallback snapshot.
-3. **Generation mix** — compares the latest observed output by fuel type and makes the supply balance readable at a glance.
-4. **Ontario operating regions** — a schematic transmission view that provides geographic context for the current operating session. The map key distinguishes the major and regional connections.
-5. **Market signal** — interprets the current real-time price against the day-ahead peak as a charging, balanced, or elevated-pressure window; it is an operational cue, not a market forecast.
-6. **24-hour demand and price profile** — shows the measured demand shape alongside the day-ahead price curve, helping analysts see when system load and market value align.
-
-## Dashboard screenshots
-
-The screenshots below were captured through the Playwright browser workflow using the bundled fallback snapshot, which is why the source chip is amber rather than live green. The numbered squares in the Live Grid view correspond to the guide above.
-
-### Live Grid
-
-![Live Grid dashboard](docs/screenshots/live-grid-saas.png)
-
-### Battery Optimizer
-
-![Battery Optimizer dashboard](docs/screenshots/battery-optimizer.png)
-
-### Scenario Lab
-
-![Scenario Lab dashboard](docs/screenshots/scenario-lab.png)
-
-There is intentionally no GitHub Actions, CI or deployment workflow in this repository.
-
-## Model boundary
-
-This is an analytics and product-development project. It does not reproduce IESO market clearing or transmission security analysis. Public reports do not contain every bid, offer, transmission state, protection constraint or confidential participant input required for an exact grid digital twin.
-
-The battery optimizer is a deterministic planning model built from public price and load data. Scenario assumptions are explicit. Forecast claims should only be made after the training pipeline is run and evaluated.
+Public IESO reports do not contain every bid, offer, transmission state, protection constraint or confidential market-participant input required to reproduce market clearing or transmission-security analysis. The battery model is a planning optimizer built from public price and load data. Scenario Lab applies explicit sensitivities rather than forecasts. Demand-forecast performance should only be cited from a completed training and backtest run using the downloaded historical dataset.
