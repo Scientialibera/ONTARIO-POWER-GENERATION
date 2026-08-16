@@ -110,24 +110,6 @@ uvicorn app.main:app --reload --port 8000
 
 Open `http://localhost:8000`.
 
-## Local checks
-
-```bash
-python -m pytest -q
-python scripts/check_no_emoji.py
-```
-
-Browser tests exercise live-grid rendering, the battery optimizer, scenario inputs, forecast content and responsive layout against deterministic test data:
-
-```bash
-python -m playwright install chromium
-python -m pytest tests/test_browser_e2e.py -q
-```
-
-If the application is running on another port, set `E2E_BASE_URL` before starting the browser suite.
-
-The repository contains no GitHub Actions, CI or deployment workflow.
-
 ## Model limits
 
 Public IESO reports do not contain every bid, offer, transmission state, protection constraint or confidential market-participant input required to reproduce market clearing or transmission-security analysis. The battery model is a planning optimizer built from public price and load data. Scenario Lab applies explicit sensitivities rather than forecasts. Demand-forecast performance should only be cited from a completed training and backtest run using the downloaded historical dataset.
